@@ -1,0 +1,37 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: func123-cmf-ingress
+  namespace: default
+  annotations: 
+    #Ingress声明，这里声明了ingress后端采用traefik实现，而不是nginx的controller
+    kubernetes.io/ingress.class: traefik
+    #开启session—sticky
+    traefik.ingress.kubernetes.io/affinity: "true" 
+    # 可选，可以自定义 
+    traefik.ingress.kubernetes.io/session-cookie-name: backend
+    #配置访问白名单，支持ipv4和ipv6
+    #ingress.kubernetes.io/whitelist-source-range: "1.2.3.0/24, fe80::/16"
+    #http认证模式，此处为basic模式
+    #ingress.kubernetes.io/auth-type: basic
+    #basic认证的对应的username和password，这里对应的traefik所在kubernetes命名空间里的secrets
+    #ingress.kubernetes.io/auth-secret: mysecret
+    #开启根据URI路径转发
+    #traefik.frontend.rule.type: PathPrefixStrip
+    #配置前端的权重，值越高则优先匹配
+    #traefik.frontend.priority: "3"
+    #关闭传入Hearder
+    #traefik.frontend.passHostHeader: "false"
+    #同时支持http和https  
+    #traefik.frontend.entryPoints=http,https
+    #使用https协议
+    #traefik.protocol=https
+spec:
+  rules:
+  - host: func123intra.vfinance.cn
+    http:
+      paths:
+      - path: /cmf
+        backend:
+          serviceName: func121-cmf-service
+          servicePort: 80

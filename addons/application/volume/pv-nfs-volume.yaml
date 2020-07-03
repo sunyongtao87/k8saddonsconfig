@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv001
+  labels: 
+    release: stable
+    environment: prod
+spec:
+  capacity:
+    storage: 20Gi
+  volumeMode: Filesystem
+  accessModes: ["ReadWriteMany","ReadWriteOnce","ReadOnlyMany"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: slow
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /data/volumes/v1
+    server: 192.168.0.250
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv002
+  labels: 
+    release: stable
+    environment: prod
+spec:
+  capacity:
+    storage: 20Gi
+  volumeMode: Filesystem
+  accessModes: ["ReadWriteOnce"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: slow
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /data/volumes/v2
+    server: 192.168.0.250
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv003
+  labels: 
+    release: stable
+    environment: dev
+spec:
+  capacity:
+    storage: 20Gi
+  volumeMode: Filesystem
+  accessModes: ["ReadWriteMany","ReadWriteOnce","ReadOnlyMany"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: slow
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /data/volumes/v3
+    server: 192.168.0.250
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv004
+  labels: 
+    release: stable
+    environment: dev
+spec:
+  capacity:
+    storage: 15Gi
+  volumeMode: Filesystem
+  accessModes: ["ReadWriteMany","ReadWriteOnce","ReadOnlyMany"]
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: slow
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /data/volumes/v4
+    server: 192.168.0.250
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv005
+  labels: 
+    release: stable
+    environment: dev
+spec:
+  capacity:
+    storage: 30Gi
+  volumeMode: Filesystem
+  accessModes: ["ReadWriteMany","ReadWriteOnce","ReadOnlyMany"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: slow
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: /data/volumes/v5
+    server: 192.168.0.250
+---

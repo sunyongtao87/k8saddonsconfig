@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: func121-cmf-deploy
+  namespace: default
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: func121-cmf
+  template:
+      metadata:
+        name: func121-cmf
+        labels:
+          app: func121-cmf
+      spec:
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 30
+#        imagePullSecrets: 
+#          - name: myregistrysecret
+        initContainers:
+        - name: config-gitrepo
+          image: harbor.vfinance.cn/tomcat/centos:v0.3
+          imagePullPolicy: IfNotPresent
+          command: ['sh','/mnt/gitrepo.sh','env_conf_func121','env_conf_func121_20191017.2']
+          volumeMounts:
+            - name: config-dir
+              mountPath: /opt/applications/
+        - name: context-gitrepo
+          image: harbor.vfinance.cn/tomcat/centos:v0.3
+          imagePullPolicy: IfNotPresent
+          command: ['sh','/mnt/gitrepo.sh','env_conf_app_func121','env_conf_app_func121_20190924.2']
+          volumeMounts:
+            - name: context-dir
+              mountPath: /opt/applications/
+        - name: code-gitrepo
+          image: harbor.vfinance.cn/tomcat/centos:v0.3
+          imagePullPolicy: IfNotPresent
+          command: ['sh','/mnt/gitrepo.sh','fj344_cmf','fj344_cmf_func121_build_20191012.1']
+          volumeMounts:
+            - name: code-dir
+              mountPath: /opt/applications/
+        containers:
+        - name: func121-cmf
+          image: harbor.vfinance.cn/tomcat/tomcat_vfinance:v0.9
+#          image: 10.5.77.13/devopsedu/tomcat_vfinance:v0.2
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            postStart:
+              exec:
+#                command: ['sh','/mnt/gitrepo.sh','fj344_cmf','fj344_cmf_func121_build_20191012.1']
+                command: 
+                  - "/bin/sh"
+                  - "-c" 
+                  - "ln -s /opt/applications/code/fj344_cmf/cmf  /mnt/tomcat/webapps/ && ln -s /opt/applications/config/env_conf_func121/config  /opt/pay/ &&  ln -s /opt/applications/context/env_conf_app_func121/tomcat/cmf/conf/context.xml  /mnt/tomcat/conf/ " 
+#            preStop:
+#              exec:
+#                command: ["/bin/sh","-c","rm","-rf","/opt/app/tomcat/logs/*"] 
+          readinessProbe:
+            httpGet:
+              path: /cmf/_health_check
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 3  
+            failureThreshold: 3
+            successThreshold: 1
+            periodSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /cmf/_health_check
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 3  
+            failureThreshold: 3
+            successThreshold: 1
+            periodSeconds: 2
+#          command: ['/bin/bash','ln','-s','/opt/applications/fj344_cmf/cmf','/opt/app/tomcat/webapps/cmf']
+#          args: ["-Xmx1024m -Xms1024m -XX:NewSize=128m -XX:MaxNewSize=256"]
+          env:
+            - name: JAVA_MEM
+              value: "-Xmx1024m -Xms1024m -XX:NewSize=128m -XX:MaxNewSize=256"
+          ports:
+          - name: cmf-port
+            containerPort: 8080
+          volumeMounts:
+          - name: func121-volume
+            mountPath: /opt/logs
+          - name: config-dir
+            mountPath: /opt/applications/config
+          - name: context-dir
+            mountPath: /opt/applications/context
+          - name: code-dir
+            mountPath: /opt/applications/code
+          resources:
+            requests:
+              memory: "1024Mi"
+              cpu: "800m"  
+            limits:
+              memory: "1024Mi"
+              cpu: "800m"
+        hostAliases:
+        - ip: "10.5.77.36"
+          hostnames:
+          - "func121intra.vfinance.cn"
+        volumes:
+        - name: code-dir
+          emptyDir: {}
+        - name: config-dir
+          emptyDir: {}
+        - name: context-dir
+          emptyDir: {}
+        - name: func121-volume
+          persistentVolumeClaim:
+            claimName: func121-pvc 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: func121-cmf-service
+  name: func121-cmf-service
+  namespace: default
+  annotations: 
+    traefik.ingress.kubernetes.io/affinity: "true" 
+    # 可选，可以自定义 
+    traefik.ingress.kubernetes.io/session-cookie-name: backend
+spec:
+  selector:
+    app: func121-cmf
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP 
+      targetPort: 8080
+#      nodePort: 8499
+#  type: NodePort
+#  clusterIP: None #无头服务
+#  clusterIP: 10.10.10.10
+---
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: myregistrysecret
+#data:
+#  .dockerconfigjson: eyJhdXRocyI6eyIxMC41Ljc3LjEzIjp7IlVzZXJuYW1lIjoiYWRtaW4iLCJQYXNzd29yZCI6IkhhcmJvcjEyMzQ1IiwiRW1haWwiOiJzdW55b25ndGFvQG5ldGZpbndvcmtzLmNvbSJ9fX0=
+#type: kubernetes.io/dockerconfigjson
+
+---

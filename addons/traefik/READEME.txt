@@ -1,0 +1,29 @@
+开启https
+
+提前准备好证书和key:
+root@h001238:~/traefik/ssl# ls
+cert.crt  cert.key
+
+
+创建secret保存https证书:
+kubectl create secret generic traefik-cert --from-file=./cert.crt --from-file=./cert.key -n kube-system
+
+
+编辑traefik配置文件:
+# vim traefik.toml 
+insecureSkipVerify = true 
+defaultEntryPoints = ["http","https"] 
+[entryPoints] 
+  [entryPoints.http] 
+  address = ":80" 
+    entryPoint = "https" 
+  [entryPoints.https] 
+  address = ":443" 
+    [entryPoints.https.tls] 
+      [[entryPoints.https.tls.certificates]] 
+      certFile = "/opt/conf/k8s/ssl/cert.crt" 
+      keyFile = "/opt/conf/k8s/ssl/cert.key"
+
+创建ConfigMap:
+kubectl create configmap traefik-conf --from-file=traefik.toml -n kube-system
+

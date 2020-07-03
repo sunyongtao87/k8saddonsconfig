@@ -1,0 +1,13 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-cmf-route
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`func121intra.vfinance.cn`)
+      kind: Rule
+      services:
+        - name: func121-cmf-service
+          port: 80
