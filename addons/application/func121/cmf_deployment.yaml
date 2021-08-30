@@ -90,6 +90,9 @@ spec:
           - name: cmf-port
             containerPort: 8080
           volumeMounts:
+          - mountPath: "/etc/localtime"
+            name: tz-config
+            readOnly: true
           - name: func121-volume
             mountPath: /opt/logs
           - name: config-dir
@@ -110,6 +113,13 @@ spec:
           hostnames:
           - "func121intra.vfinance.cn"
         volumes:
+        - name: tz-config
+          hostPath:
+            path: "/usr/share/zoneinfo/Asia/Shanghai" 
+        - name: search-index-file
+          nfs:
+            server: 1200374b561-jxt7.cn-hongkong.nas.aliyuncs.com
+            path: "/search"
         - name: code-dir
           emptyDir: {}
         - name: config-dir
