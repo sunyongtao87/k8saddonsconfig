@@ -86,6 +86,16 @@ spec:
           env:
             - name: JAVA_MEM
               value: "-Xmx1024m -Xms1024m -XX:NewSize=128m -XX:MaxNewSize=256"
+            - name: PODIP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
           ports:
           - name: cmf-port
             containerPort: 8080
