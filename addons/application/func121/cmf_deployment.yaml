@@ -107,8 +107,10 @@ spec:
             mountPath: /opt/logs
           - name: config-dir
             mountPath: /opt/applications/config
+            readOnly: true
           - name: context-dir
             mountPath: /opt/applications/context
+            readOnly: true
           - name: code-dir
             mountPath: /opt/applications/code
           resources:
