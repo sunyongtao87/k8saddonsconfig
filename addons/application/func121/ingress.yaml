@@ -1,0 +1,59 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      if ($host = 'www.chinaiims.com' ) {
+        rewrite /  https://www.chinaimx.com$uri permanent;
+      }
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  #  nginx.ingress.kubernetes.io/auth-realm: Authentication Required - admin
+  #  nginx.ingress.kubernetes.io/auth-secret: crxai-ui-auth
+  #  nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.org/proxy-connect-timeout: 60s
+    nginx.org/proxy-read-timeout: 500s
+  name: hkkanjian-ingress
+  namespace: star
+spec:
+  rules:
+  - host: '*.chinaimx.com'
+    http:
+      paths:
+      - backend:
+          service:
+            name: hkkanjian
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+  - host: chinaimx.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: hkkanjian
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+  - host: www.chinaiims.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: hkkanjian
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - '*.chinaimx.com'
+    - www.chinaimx.com
+    - chinaimx.com
+    secretName: chinaimx.com
+  - hosts:
+    - www.chinaiims.com
+    secretName: www.chinaiims.com
