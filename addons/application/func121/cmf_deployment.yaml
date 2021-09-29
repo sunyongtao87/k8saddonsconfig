@@ -19,6 +19,16 @@ spec:
         labels:
           app: func121-cmf
       spec:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - func121-cmf
+              topologyKey: kubernetes.io/hostname
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
 #        imagePullSecrets: 
