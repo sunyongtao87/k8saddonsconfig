@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: es-cluster
+  namespace: star-sh
+spec:
+  podManagementPolicy: OrderedReady
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: es-cluster
+  serviceName: es-cluster-service
+  template:
+    metadata:
+      labels:
+        app: es-cluster
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - es-cluster
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - env:
+        - name: cluster.name
+          value: es7.9.2-cluster
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: discovery.zen.minimum_master_nodes
+          value: "2"
+        - name: node.max_local_storage_nodes
+          value: "10"
+        - name: ES_JAVA_OPTS
+          value: -Xms2g -Xmx2g
+        - name: network.host
+          value: 0.0.0.0
+        - name: discovery.seed_hosts
+          value: es-cluster-service
+        - name: cluster.initial_master_nodes
+          value: es-cluster-0,es-cluster-1,es-cluster-2
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.9.2
+        imagePullPolicy: IfNotPresent
+        name: elasticsearch
+        ports:
+        - containerPort: 9200
+          name: rest
+          protocol: TCP
+        - containerPort: 9300
+          name: inter
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2500Mi
+          requests:
+            cpu: 300m
+            memory: 500Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /usr/share/elasticsearch/data
+          name: es-data-storage
+          subPath: data
+        - mountPath: /usr/share/elasticsearch/plugins
+          name: es-data-storage
+          subPath: plugins
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        image: busybox
+        imagePullPolicy: Always
+        name: increase-vm-max-map
+        resources: {}
+        securityContext:
+          privileged: true
+          procMount: Default
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      - command:
+        - sh
+        - -c
+        - ulimit -n 65536
+        image: busybox
+        imagePullPolicy: Always
+        name: increase-fd-ulimit
+        resources: {}
+        securityContext:
+          privileged: true
+          procMount: Default
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: es-data-storage
+        persistentVolumeClaim:
+          claimName: aliyun-nfs-elasticsearch-6.8.2-claim
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
