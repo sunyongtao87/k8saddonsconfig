@@ -19,6 +19,9 @@ spec:
         labels:
           app: func121-cmf
       spec:
+        dnsConfig:
+          options:
+            - name: single-request-reopen
         affinity:
           podAntiAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
