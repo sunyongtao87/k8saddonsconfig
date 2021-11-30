@@ -1,0 +1,111 @@
+1、安装cert-manager,安装文档链接：https://cert-manager.io/docs/installation/
+   $ kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.6.1/cert-manager.yaml
+2、使用http-01方式只能生成但域名证书，使用dns-01方式可以生成泛域名证书
+   如果使用的是DNSPOD采用如下方式：
+   a、安装DNSPOD的web hook，
+     # git lone https://github.com/qqshfox/cert-manager-webhook-dnspod
+     #修改pki.yaml文件里为apiVersion: cert-manager.io/v1
+     
+修改vaule.yaml文件
+# here is recommended.
+groupName: acme.sunyongtao.com
+
+certManager:
+  namespace: cert-manager
+  serviceAccountName: cert-manager
+
+secrets:
+ apiID: "165940"
+ apiToken: "83eff669a1465a60441991122675db42"
+
+clusterIssuer:
+  enabled: true
+  staging: false
+  email: 284965760@qq.com
+
+  # https://cert-manager.io/docs/configuration/acme/#adding-multiple-solver-types
+  #selector:
+  #  dnsZones:
+  #    - 'example.com'
+
+# imagePullSecrets:
+#   - name: regcred
+image:
+  repository: qqshfox/cert-manager-webhook-dnspod
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 443
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+nodeSelector: {}
+tolerations: []
+affinity: {}
+    
+c、helm安装
+helm upgrade --install -n cert-manager -f   ./cert-manager-webhook-dnspod/deploy/cert-manager-webhook-dnspod/values.yaml cert-manager-webhook-dnspod ./cert-manager-webhook-dnspod/deploy/cert-manager-webhook-dnspod
+
+如果想输出为yaml文件，执行如下命令：
+cd ./cert-manager-webhook-dnspod/deploy && helm  template cert-manager-webhook-dnspod  --output-dir  ./result/   -n cert-manager
+
+3、创建cert
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: 8508-com-cert
+  namespace: star
+spec:
+  commonName: '*.8508.com'
+  dnsNames:
+  - 8508.com
+  - '*.8508.com'
+  issuerRef:
+    kind: ClusterIssuer
+    name: cert-manager-webhook-dnspod-cluster-issuer
+  secretName: 8508-com-tls
+  
+4、创建ingress引用证书
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.org/proxy-connect-timeout: 30s
+    nginx.org/proxy-read-timeout: 500s
+  name: 8508-ingress
+  namespace: star
+spec:
+  rules:
+  - host: wwwtest.8508.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: musically
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - wwwtest.8508.com
+    secretName: 8508-com-tls
+      
+   
