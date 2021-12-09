@@ -1,0 +1,95 @@
+---
+# Source: prometheus/templates/node-exporter/daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    component: "node-exporter"
+    app: prometheus
+    release: RELEASE-NAME
+    chart: prometheus-15.0.1
+    heritage: Helm
+  name: prometheus-node-exporter
+  namespace: prometheus-monitor
+spec:
+  selector:
+    matchLabels:
+      component: "node-exporter"
+      app: prometheus
+      release: RELEASE-NAME
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9100"
+        prometheus.io/scrape: "true"
+      labels:
+        component: "node-exporter"
+        app: prometheus
+        release: RELEASE-NAME
+        chart: prometheus-15.0.1
+        heritage: Helm
+    spec:
+      serviceAccountName: prometheus-node-exporter
+      containers:
+        - name: prometheus-node-exporter
+          image: "quay.io/prometheus/node-exporter:v1.3.0"
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - --path.procfs=/host/proc
+            - --path.sysfs=/host/sys
+            - --path.rootfs=/host/root
+            - --web.listen-address=$(HOSTIP):9100
+          ports:
+            - name: metrics
+              containerPort: 9100
+              hostPort: 9100
+          env:
+          - name: HOSTIP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          resources:
+            requests:
+              cpu: 150m
+              memory: 180Mi
+            limits:
+              cpu: 150m
+              memory: 180Mi
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly:  true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+            - name: root
+              mountPath: /host/root
+              mountPropagation: HostToContainer
+              readOnly: true
+            - mountPath: "/etc/localtime"
+              name: tz-config
+              readOnly: true
+      hostNetwork: true
+      hostPID: true
+      hostIPC: true
+      securityContext:
+        fsGroup: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+      volumes:
+        - name: tz-config
+          hostPath:
+            path: "/usr/share/zoneinfo/Asia/Shanghai"
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+        - name: root
+          hostPath:
+            path: /

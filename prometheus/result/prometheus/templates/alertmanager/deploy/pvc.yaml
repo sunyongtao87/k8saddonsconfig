@@ -1,0 +1,19 @@
+---
+# Source: prometheus/templates/alertmanager/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    component: "alertmanager"
+    app: prometheus
+    release: RELEASE-NAME
+    chart: prometheus-15.0.1
+    heritage: Helm
+  name: prometheus-alertmanager
+  namespace: prometheus-monitor
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "20Gi"

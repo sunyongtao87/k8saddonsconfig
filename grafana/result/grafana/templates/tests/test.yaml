@@ -1,0 +1,31 @@
+---
+# Source: grafana/templates/tests/test.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: RELEASE-NAME-grafana-test
+  labels:
+    helm.sh/chart: grafana-6.18.1
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: RELEASE-NAME
+    app.kubernetes.io/version: "8.3.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test-success
+  namespace: prometheus-monitor
+spec:
+  serviceAccountName: RELEASE-NAME-grafana-test
+  containers:
+    - name: RELEASE-NAME-test
+      image: "bats/bats:v1.4.1"
+      imagePullPolicy: "IfNotPresent"
+      command: ["/opt/bats/bin/bats", "-t", "/tests/run.sh"]
+      volumeMounts:
+        - mountPath: /tests
+          name: tests
+          readOnly: true
+  volumes:
+  - name: tests
+    configMap:
+      name: RELEASE-NAME-grafana-test
+  restartPolicy: Never

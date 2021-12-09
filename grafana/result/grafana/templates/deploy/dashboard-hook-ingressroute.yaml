@@ -1,0 +1,31 @@
+---
+# http重定向https
+#apiVersion: traefik.containo.us/v1alpha1
+#kind: Middleware
+#metadata:
+#  name: redirect-https
+#  namespace: prometheus-monitor
+#spec:
+#  redirectScheme:
+#    scheme: https
+#    permanent: true
+---
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana-web-http
+  namespace: prometheus-monitor
+spec:
+  entryPoints:
+    - web
+  routes:
+  - match: "Host(`grafana.rr.tv`)"
+    kind: Rule
+#    middlewares:
+#    - name: grafana-dashboard-auth
+#      namespace: prometheus-monitor
+    services:
+    - name: grafana
+      port: 80
+---
