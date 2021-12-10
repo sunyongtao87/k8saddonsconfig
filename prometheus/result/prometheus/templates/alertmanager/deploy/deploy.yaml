@@ -73,6 +73,9 @@ spec:
               cpu: 100m
               memory: 256Mi
           volumeMounts:
+            - mountPath: "/etc/localtime"
+              name: tz-config
+              readOnly: true
             - name: config-volume
               mountPath: /etc/config
             - name: storage-volume
@@ -92,6 +95,9 @@ spec:
               cpu: 100m
               memory: 256Mi
           volumeMounts:
+            - mountPath: "/etc/localtime"
+              name: tz-config
+              readOnly: true
             - name: config-volume
               mountPath: /etc/config
               readOnly: true
@@ -101,6 +107,9 @@ spec:
         runAsNonRoot: true
         runAsUser: 65534
       volumes:
+        - name: tz-config
+          hostPath:
+            path: "/usr/share/zoneinfo/Asia/Shanghai"
         - name: config-volume
           configMap:
             name: prometheus-alertmanager

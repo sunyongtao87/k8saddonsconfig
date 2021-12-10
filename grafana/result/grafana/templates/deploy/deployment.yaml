@@ -111,6 +111,9 @@ spec:
               cpu: 100m
               memory: 512Mi
           volumeMounts:
+            - mountPath: "/etc/localtime"
+              name: tz-config
+              readOnly: true
             - name: config
               mountPath: "/etc/grafana/grafana.ini"
               subPath: grafana.ini
@@ -121,6 +124,9 @@ spec:
         hostnames:
         - "grafana.rr.tv"
       volumes:
+        - name: tz-config
+          hostPath:
+            path: "/usr/share/zoneinfo/Asia/Shanghai"
         - name: config
           configMap:
             name: grafana

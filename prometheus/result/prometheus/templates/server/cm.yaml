@@ -12,8 +12,6 @@ metadata:
   name: prometheus-server-config
   namespace: prometheus-monitor
 data:
-  alerting_rules.yml: |
-    {}
   alerts: |
     {}
   prometheus.yml: |
