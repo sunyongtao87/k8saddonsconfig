@@ -1,0 +1,29 @@
+---
+# Source: prometheus-adapter/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-adapter
+  namespace: prometheus-monitor
+  labels:    
+    helm.sh/chart: prometheus-adapter-3.0.0
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/part-of: prometheus-adapter
+    app.kubernetes.io/name: prometheus-adapter
+    app.kubernetes.io/instance: prometheus-adapter
+    app.kubernetes.io/version: "v0.9.1"
+data:
+  config.yaml: |
+    rules:
+    - metricsQuery: (sum(rate(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>))
+      name:
+        as: ${1}_per_second
+        matches: ^(.*)_total
+      resources:
+        overrides:
+          namespace:
+            resource: namespace
+          pod:
+            resource: pod
+      seriesQuery: nginx_vts_server_requests_total
