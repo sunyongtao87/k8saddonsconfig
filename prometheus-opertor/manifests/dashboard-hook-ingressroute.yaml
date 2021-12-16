@@ -1,0 +1,52 @@
+---
+# 定义traefik dashboard访问验证
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: dashboard-auth
+  namespace: monitoring
+spec:
+  basicAuth:
+    secret: authsecret
+---
+#admin:admin
+apiVersion: v1
+kind: Secret
+metadata:
+  name: authsecret
+  namespace: monitoring
+data:
+  user: |
+    YWRtaW46JGFwcjEkcVV3UWE1YlckdEQzdVovaG50TlI3cjRGNUp3TzhpLwo=
+---
+# http重定向https
+#apiVersion: traefik.containo.us/v1alpha1
+#kind: Middleware
+#metadata:
+#  name: redirect-https
+#  namespace: monitoring
+#spec:
+#  redirectScheme:
+#    scheme: https
+#    permanent: true
+---
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prometheus-web-http
+  namespace: monitoring
+spec:
+  entryPoints:
+    - web
+  routes:
+  - match: "Host(`prometheus.rr.tv`)"
+    kind: Rule
+    middlewares:
+    - name: dashboard-auth
+      namespace: monitoring
+    services:
+    - name: prometheus-k8s
+      port: 9090
+---

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: webhook-dingtalk
+  name: webhook-dingtalk
+  namespace: monitoring
+  #需要和alertmanager在同一个namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webhook-dingtalk
+  template:
+    metadata:
+      labels:
+        app: webhook-dingtalk
+    spec:
+      containers:
+      - image: uhub.service.ucloud.cn/jackhe/prometheus-webhook-dingtalk:v1.1
+        name: webhook-dingtalk
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        env:
+        - name: ROBOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: dingtalk-secret
+              key: token
+        - name: ROBOT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: dingtalk-secret
+              key: secret
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 500Mi
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+          tcpSocket:
+            port: 8080
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+          httpGet:
+            port: 8080
+            path: /
+      imagePullSecrets:
+        - name: IfNotPresent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: webhook-dingtalk
+  name: webhook-dingtalk
+  namespace: monitoring
+  #需要和alertmanager在同一个namespace
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: webhook-dingtalk
+  type: ClusterIP
