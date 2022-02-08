@@ -23,6 +23,16 @@ spec:
           options:
             - name: single-request-reopen
         affinity:
+   #       nodeAffinity:
+   #           preferredDuringSchedulingIgnoredDuringExecution:
+   #         - weight: 1
+   #           preference:
+   #               matchExpressions:
+   #             - key: deploy
+   #               operator: In
+   #               values:
+   #               - application
+ 
           podAntiAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
