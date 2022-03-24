@@ -89,10 +89,14 @@ spec:
               path: /cmf/_health_check
               port: 8080
               scheme: HTTP
+            #初始第一次探测间隔，用于应用启动的时间，防止应用还没启动而健康检查失败  
             initialDelaySeconds: 60
+            #检查超时时长，探测应用timeout后为失败
             timeoutSeconds: 1  
             failureThreshold: 3
+            #成功探测阈值，表示探测多少次为健康正常，默认探测1次
             successThreshold: 1
+            #检查间隔，多久执行probe检查，默认为10s
             periodSeconds: 2
           livenessProbe:
             httpGet:
