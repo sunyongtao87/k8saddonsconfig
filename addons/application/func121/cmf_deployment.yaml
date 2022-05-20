@@ -47,6 +47,16 @@ spec:
 #        imagePullSecrets: 
 #          - name: myregistrysecret
         initContainers:
+        - name: iptables-init
+          image: ikubernetes/admin-box:latest
+          imagePullPolicy: IfNotPresent
+          command: ['/bin/sh','-c']
+          args: ['iptables -t nat -A PREROUTING -p tcp --dport 8080 -j REDIRECT --to-port 80']  
+          securityContext:
+            capabilities:
+              add:
+              - NET_ADMIN
+        
         - name: config-gitrepo
           image: harbor.vfinance.cn/tomcat/centos:v0.3
           imagePullPolicy: IfNotPresent
