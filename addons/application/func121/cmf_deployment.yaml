@@ -150,6 +150,9 @@ spec:
             readOnly: true
           - name: code-dir
             mountPath: /opt/applications/code
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001     
           resources:
             requests:
               memory: "1024Mi"
@@ -157,6 +160,9 @@ spec:
             limits:
               memory: "1024Mi"
               cpu: "800m"
+        securityContext:
+          supplementalGroups: [1002, 1003]
+          fsGroup: 2000
         hostAliases:
         - ip: "10.5.77.36"
           hostnames:
