@@ -4,12 +4,16 @@ metadata:
   name: func121-cmf-deploy
   namespace: default
 spec:
+#  minReadySeconds <integer>  # Pod就绪后多少秒内任一容器无crash方可视为“就绪”
+#  revisionHistoryLimit <integer> # 滚动更新历史记录数量，默认为10
+#  progressDeadlineSeconds <integer> # 滚动更新故障超时时长，默认为600秒
+#  paused <boolean>  # 是否暂停部署过程
   replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: func121-cmf
